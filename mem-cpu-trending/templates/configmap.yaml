@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mem-cpu-trending-script
+  labels:
+    app.kubernetes.io/name: {{ include "mem-cpu-trending.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+  mem-cpu-trending.go: |-
+{{- .Values.mem_cpu_trending_script | nindent 4 }}

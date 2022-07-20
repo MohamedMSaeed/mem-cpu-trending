@@ -1,0 +1,56 @@
+replicaCount: 1
+
+image:
+  repository: golang
+  tag: 1.14
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+resources:
+   limits:
+     cpu: 1000m
+     memory: 1000Mi
+   requests:
+     cpu: 100m
+     memory: 300Mi
+
+
+mem_cpu_trending_script: |
+  package main
+
+  import (
+  	"net/http"
+  	"time"
+
+  	"github.com/prometheus/client_golang/prometheus/promhttp"
+  )
+
+  func main() {
+  	memoryTicker := time.NewTicker(time.Millisecond * 15)
+  	leak := make(map[int][]byte)
+  	i := 0
+
+  	go func() {
+  		for range memoryTicker.C {
+  			leak[i] = make([]byte, 128)
+  			i++
+  		}
+  	}()
+
+  	http.Handle("/metrics", promhttp.Handler())
+  	http.ListenAndServe(":8081", nil)
+  }
